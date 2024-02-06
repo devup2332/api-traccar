@@ -17,7 +17,6 @@ export const GENERAR_PARADEROS_CONTROLLER = async (
     SELECT * FROM paraderos_info
 `);
   // console.log({ paraderos, eventos });
-  const newZones: string[] = [];
   for (const e of eventos as any) {
     const { eventtime, geofenceid, id } = e;
     // console.log({ eventtime });
@@ -55,7 +54,6 @@ export const GENERAR_PARADEROS_CONTROLLER = async (
 
         const d = m?.toISOString().slice(0, 19).replace("T", " ")!;
         backup = d;
-        newZones.push(d);
 
         console.log(`====> WRITING IN paraderos_info geofenceid = 8`);
         await conn.query(
@@ -71,6 +69,12 @@ export const GENERAR_PARADEROS_CONTROLLER = async (
           .map((e: any) => e.id),
       );
       if (idMax > id) continue;
+      const [paraderos] = await conn.query(
+        `
+          SELECT hora_estimada FROM paraderos_info WHERE id = ?
+      `,
+        [geofenceid],
+      );
       const d = moment(eventtime)
         .subtract(5, "hours")
         .toISOString()
@@ -79,20 +83,20 @@ export const GENERAR_PARADEROS_CONTROLLER = async (
       // console.log({ eventtime, newZones });
       const d1 = new Date(eventtime).getTime();
       const d2 = new Date(
-        moment(newZones[geofenceid - 9]).toISOString(),
+        moment((paraderos as any)[0].hora_estimada).toISOString(),
       ).getTime();
       const result = Math.round((d1 - d2) / 1000 / 60);
-      let status: any = "";
-      if (result <= 0) status = "a tiempo";
+      let status: null | string = null;
+      if (result <= 0 && result > -20) status = "a tiempo";
       if (result > 0 && result < 20) status = "tarde";
       if (status === null) continue;
 
       console.log(
-        `====> WRITING IN paraderos_info geofenceid = ${geofenceid} | ${result} | ${status} | ${d1} - ${d2}`,
+        `====> WRITING IN paraderos_info geofenceid = ${geofenceid} | ${result} | ${status} | ${eventtime} - ${(paraderos as any)[0].hora_estimada}`,
       );
       await conn.query(
         `UPDATE paraderos_info SET hora_llegada = ?,estado = ?,diferencia_horas = ? WHERE id=? `,
-        [d, status, result / 60, geofenceid],
+        [d, status, result, geofenceid],
       );
     }
   }
