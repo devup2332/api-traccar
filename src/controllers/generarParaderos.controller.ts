@@ -102,13 +102,9 @@ export const GENERAR_PARADEROS_CONTROLLER = async (
   }
   console.log(`====> REFETCHING DATABASE DATA`);
 
-  const newInfo = await conn.query(`
+  const [newInfo] = await conn.query(`
     SELECT * FROM paraderos_info
 `);
   const res = (newInfo as any).filter((n: any) => n.estado);
-  return Response.json({
-    message: "Ok",
-    data: res[res.length - 1] || [],
-    newInfo,
-  });
+  return Response.send(res[res.length - 1].estado === "a tiempo" ? "a" : "b");
 };
