@@ -15,8 +15,6 @@ export const GENERAR_PARADEROS_CONTROLLER = async (
   const [paraderos] = await conn.query(`
     SELECT * FROM paraderos_info
 `);
-  console.log({ eventos, paraderos });
-  return
   const newZones: string[] = [];
   for (const e of eventos as any) {
     const { eventtime, geofenceid, id } = e;
