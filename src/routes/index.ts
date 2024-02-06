@@ -7,6 +7,6 @@ const router = Router();
 
 router.get("/generarParaderos", GENERAR_PARADEROS_CONTROLLER);
 router.get("/paraderos", GET_PARADEROS);
-router.delete("/borrarDatos", BORRAR_COLUMNAS);
+router.get("/borrarDatos", BORRAR_COLUMNAS);
 
 export default router;
