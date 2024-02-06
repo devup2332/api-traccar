@@ -7,7 +7,7 @@ const pool = mysql.createConnection({
   port: environments.DB_PORT,
   database: environments.DB_DATABASE,
   user: environments.DB_USER,
-  timezone: "UTC-5"
+  timezone: "-05:00"
 });
 
 const connect = async () => {

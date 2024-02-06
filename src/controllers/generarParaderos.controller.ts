@@ -15,6 +15,7 @@ export const GENERAR_PARADEROS_CONTROLLER = async (
   const [paraderos] = await conn.query(`
     SELECT * FROM paraderos_info
 `);
+  // console.log({ paraderos, eventos });
   const newZones: string[] = [];
   for (const e of eventos as any) {
     const { eventtime, geofenceid, id } = e;
@@ -53,6 +54,7 @@ export const GENERAR_PARADEROS_CONTROLLER = async (
         backup = d;
         newZones.push(d);
 
+        console.log(`====>WRITING IN paraderos_info geofenceid = 8`);
         await conn.query(
           `UPDATE paraderos_info SET hora_estimada = "${d}" WHERE id=${id + 1} `,
         );
@@ -79,11 +81,14 @@ export const GENERAR_PARADEROS_CONTROLLER = async (
       if (result > 0 && result < 20) status = "tarde";
       if (status === null) continue;
 
+      console.log(`====>WRITING IN paraderos_info geofenceid = ${geofenceid}`);
       await conn.query(
-        `UPDATE paraderos_info SET hora_llegada = "${d}",estado = "${status}",diferencia_horas = ${result} WHERE id=${geofenceid} `,
+        `UPDATE paraderos_info SET hora_llegada = ?,estado = ?,diferencia_horas = ? WHERE id=? `,
+        [d, status, result, geofenceid],
       );
     }
   }
+  console.log(`====>REFETCHING DATABASE DATA`);
 
   const newInfo = await conn.query(`
     SELECT * FROM paraderos_info
@@ -92,5 +97,6 @@ export const GENERAR_PARADEROS_CONTROLLER = async (
   return Response.json({
     message: "Ok",
     data: res[res.length - 1] || [],
+    newInfo,
   });
 };
